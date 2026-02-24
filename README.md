@@ -34,9 +34,8 @@ Even if you are 7 years old and have never coded before, you can run this in 30 
 
 ### Step 1: Download the Code
 Copy and paste this exact command into your terminal / command prompt:
-*(Note: Replace `pip...` with your actual full GitHub username!)*
 ```bash
-git clone https://github.com/pip.../localtube.git
+git clone https://github.com/pipmeme/localtube.git
 ```
 
 ### Step 2: Open the Folder
