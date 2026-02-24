@@ -1,181 +1,274 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LocalTube</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-
 <body>
-    <header class="header">
-        <div class="left-section">
-            <span class="material-icons menu-icon">menu</span>
-            <div class="logo-container" onclick="goHome()">
-                <div class="logo-icon">►</div>
-                <span class="logo-text">LocalTube</span>
-            </div>
-        </div>
-        <div class="middle-section">
-            <div class="search-bar">
-                <input class="search-input" type="text" placeholder="Search saved videos" id="searchInput">
-                <button class="search-button">
-                    <span class="material-icons">search</span>
-                </button>
-            </div>
-        </div>
-        <div class="right-section">
-            <span class="material-icons" title="Refresh Video Library" onclick="refreshLibrary()"
-                style="color:var(--secondary-text);">refresh</span>
-            <span class="material-icons" title="Settings" onclick="openSettings()">settings</span>
-            <span class="material-icons" title="Upload Local Folder">video_call</span>
-            <span class="material-icons">apps</span>
-            <span class="material-icons">notifications</span>
-            <img class="user-avatar" src="https://ui-avatars.com/api/?name=Local+User&background=random" alt="User">
-        </div>
-    </header>
 
-    <div class="main-body">
-        <nav class="sidebar">
-            <div class="sidebar-link active" id="homeLink" onclick="goHome()">
-                <span class="material-icons">home</span>
-                <div>Home</div>
-            </div>
-            <div class="sidebar-link">
-                <span class="material-icons">explore</span>
-                <div>Explore</div>
-            </div>
-            <div class="sidebar-link">
-                <span class="material-icons">subscriptions</span>
-                <div>Subscriptions</div>
-            </div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-link">
-                <span class="material-icons">video_library</span>
-                <div>Library</div>
-            </div>
-            <div class="sidebar-link" id="historyLink" onclick="showHistory()">
-                <span class="material-icons">history</span>
-                <div>History</div>
-            </div>
-            <div class="sidebar-link">
-                <span class="material-icons">smart_display</span>
-                <div>Your videos</div>
-            </div>
-            <div class="sidebar-link">
-                <span class="material-icons">watch_later</span>
-                <div>Watch later</div>
-            </div>
-            <div class="sidebar-link">
-                <span class="material-icons">thumb_up</span>
-                <div>Liked videos</div>
-            </div>
-        </nav>
+<!-- ==================== HEADER ==================== -->
+<header id="masthead">
+    <div id="start">
+        <button class="yt-icon-btn" id="guide-button" aria-label="Guide">
+            <span class="material-icons">menu</span>
+        </button>
+        <a id="logo" href="#" onclick="goHome(); return false;">
+            <svg viewBox="0 0 90 20" preserveAspectRatio="xMidYMid meet" class="yt-logo-svg">
+                <g>
+                    <path d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z" fill="#FF0000"></path>
+                    <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" fill="white"></path>
+                </g>
+                <g>
+                    <path d="M34.6024 13.0036L31.3945 1.41846H34.1932L35.3174 6.6701C35.6043 7.96361 35.8136 9.06662 35.95 9.97913H36.0323C36.1264 9.32532 36.3381 8.22937 36.665 6.68892L37.8291 1.41846H40.6278L37.3799 13.0036V18.561H34.6001V13.0036H34.6024Z" fill="var(--yt-text-primary)"></path>
+                    <path d="M41.4697 18.1937C40.9053 17.8127 40.5031 17.22 40.2632 16.4157C40.0257 15.6114 39.9058 14.5765 39.9058 13.3092V11.3723C39.9058 10.0885 40.0422 9.04191 40.3151 8.23278C40.5878 7.42365 41.0135 6.8262 41.5922 6.44046C42.1709 6.05765 42.9302 5.86328 43.8694 5.86328C44.7921 5.86328 45.5349 6.05765 46.0994 6.44604C46.6639 6.83443 47.0637 7.43188 47.301 8.24101C47.5384 9.05014 47.6583 10.0933 47.6583 11.3723V13.3092C47.6583 14.5765 47.5765 15.6161 47.3106 16.4251C47.0471 17.2365 46.6174 17.8316 46.0247 18.2078C45.432 18.5765 44.6562 18.772 43.6935 18.772C42.7073 18.772 41.9225 18.5765 41.4697 18.1937ZM44.6103 16.4444C44.7## [truncated for readability - this is the actual YouTube SVG logo] 7806 16.0419 44.8935 15.1588 44.8935 13.7954V10.8822C44.8935 9.52551 44.7877 8.63498 44.5765 8.21052C44.3652 7.78606 44.0246 7.57383 43.5553 7.57383C43.0837 7.57383 42.7454 7.78606 42.5365 8.21052C42.3277 8.63498 42.2219 9.52551 42.2219 10.8822V13.7954C42.2219 15.1588 42.3277 16.0466 42.5365 16.4614C42.7454 16.8762 43.0861 17.0836 43.5553 17.0836C44.0246 17.0836 44.3676 16.8715 44.6103 16.4444Z" fill="var(--yt-text-primary)"></path>
+                </g>
+                <text x="55" y="15.5" fill="var(--yt-text-primary)" font-family="Roboto" font-size="13" font-weight="400" letter-spacing="-0.5">LocalTube</text>
+            </svg>
+        </a>
+    </div>
 
-        <main class="content-wrapper">
-            <!-- Grid View -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <div class="categories" id="categoriesBar" style="margin-bottom: 0;">
-                    <button class="category active" onclick="filterCategory('All')">All</button>
-                    <button class="category" onclick="filterCategory('Downloads')">Downloads</button>
-                    <button class="category" onclick="filterCategory('Movies')">Movies</button>
-                    <button class="category" onclick="filterCategory('Tutorials')">Tutorials</button>
-                    <button class="category" onclick="filterCategory('Gaming')">Gaming</button>
-                    <button class="category" onclick="filterCategory('Music')">Music</button>
+    <div id="center">
+        <div id="search-form">
+            <div id="search-input-container">
+                <input id="searchInput" type="text" placeholder="Search" autocomplete="off" spellcheck="false">
+            </div>
+            <button id="search-icon-btn" onclick="applyFiltersAndSort()">
+                <span class="material-icons">search</span>
+            </button>
+        </div>
+        <button class="yt-icon-btn" id="voice-search-button" title="Search with your voice">
+            <span class="material-icons">mic</span>
+        </button>
+    </div>
+
+    <div id="end">
+        <span id="videoCount" class="chip-badge"></span>
+        <button class="yt-icon-btn" title="Refresh Library" onclick="refreshLibrary()">
+            <span class="material-icons-outlined">refresh</span>
+        </button>
+        <button class="yt-icon-btn" title="Settings" onclick="openSettings()">
+            <span class="material-icons-outlined">settings</span>
+        </button>
+        <button class="yt-icon-btn" id="themeToggleBtn" title="Appearance" onclick="toggleTheme()">
+            <span class="material-icons-outlined" id="themeIcon">dark_mode</span>
+        </button>
+        <button class="yt-avatar-btn" title="Your account">
+            <div class="yt-avatar">N</div>
+        </button>
+    </div>
+</header>
+
+<!-- ==================== MAIN BODY ==================== -->
+<div id="page-manager">
+
+    <!-- SIDEBAR / GUIDE -->
+    <nav id="guide" class="expanded">
+        <div id="guide-inner">
+            <div class="guide-section">
+                <a class="guide-entry active" id="homeLink" onclick="goHome()">
+                    <span class="material-icons">home</span>
+                    <span class="guide-text">Home</span>
+                </a>
+                <a class="guide-entry" onclick="showAllVideos()">
+                    <span class="material-icons-outlined">explore</span>
+                    <span class="guide-text">Explore</span>
+                </a>
+                <a class="guide-entry" onclick="showAllVideos()">
+                    <span class="material-icons-outlined">subscriptions</span>
+                    <span class="guide-text">Subscriptions</span>
+                </a>
+            </div>
+            <div class="guide-separator"></div>
+            <div class="guide-section">
+                <div class="guide-section-title">You</div>
+                <a class="guide-entry" id="historyLink" onclick="showHistory()">
+                    <span class="material-icons-outlined">history</span>
+                    <span class="guide-text">History</span>
+                </a>
+                <a class="guide-entry" id="likedLink" onclick="showLikedVideos()">
+                    <span class="material-icons-outlined">thumb_up</span>
+                    <span class="guide-text">Liked videos</span>
+                </a>
+                <a class="guide-entry" onclick="showAllVideos()">
+                    <span class="material-icons-outlined">video_library</span>
+                    <span class="guide-text">Your videos</span>
+                </a>
+                <a class="guide-entry" onclick="showAllVideos()">
+                    <span class="material-icons-outlined">schedule</span>
+                    <span class="guide-text">Watch later</span>
+                </a>
+            </div>
+            <div class="guide-separator"></div>
+            <div class="guide-section">
+                <div class="guide-section-title">Explore</div>
+                <a class="guide-entry" onclick="filterCategory('Music')">
+                    <span class="material-icons-outlined">music_note</span>
+                    <span class="guide-text">Music</span>
+                </a>
+                <a class="guide-entry" onclick="filterCategory('Gaming')">
+                    <span class="material-icons-outlined">sports_esports</span>
+                    <span class="guide-text">Gaming</span>
+                </a>
+            </div>
+            <div class="guide-separator"></div>
+            <div class="guide-section guide-footer">
+                <div class="guide-footer-text">
+                    LocalTube v1.0.0<br>
+                    Private &bull; Offline &bull; Localhost only
                 </div>
+            </div>
+        </div>
+    </nav>
 
-                <select id="sortDropdown" class="search-input"
-                    style="width:auto; padding:8px; border:1px solid var(--border-color); border-radius:4px; max-height:40px; margin-left: 16px;"
-                    onchange="applySort()">
-                    <option value="default">Sort by: Default</option>
+    <!-- MAIN CONTENT -->
+    <div id="primary">
+        <!-- CHIPS / CATEGORY BAR -->
+        <div id="chip-bar" class="chip-bar">
+            <div id="categoriesBar" class="chips-content">
+                <button class="chip active" onclick="filterCategory('All')">All</button>
+                <button class="chip" onclick="filterCategory('Downloads')">Downloads</button>
+                <button class="chip" onclick="filterCategory('Large Files')">Large files</button>
+                <button class="chip" onclick="filterCategory('Music')">Music</button>
+                <button class="chip" onclick="filterCategory('Tutorial')">Tutorials</button>
+                <button class="chip" onclick="filterCategory('Gaming')">Gaming</button>
+                <button class="chip" onclick="filterCategory('Recently watched')">Recently watched</button>
+                <select id="sortDropdown" class="chip chip-select" onchange="applySort()">
+                    <option value="default">Sort</option>
                     <option value="name">Name (A-Z)</option>
-                    <option value="dateNew">Date (Newest)</option>
-                    <option value="dateOld">Date (Oldest)</option>
+                    <option value="nameDesc">Name (Z-A)</option>
+                    <option value="dateNew">Newest</option>
+                    <option value="dateOld">Oldest</option>
                 </select>
             </div>
+        </div>
 
-            <div class="video-grid" id="videoGrid">
-                <!-- Videos will be injected here via JS -->
-            </div>
+        <!-- VIDEO GRID -->
+        <div id="videoGrid" class="yt-grid"></div>
 
-            <!-- Player View (hidden by default) -->
-            <div class="player-container" id="playerContainer" style="display: none;">
-                <div class="player-main">
+        <!-- PLAYER VIEW (hidden) -->
+        <div id="playerContainer" class="watch-page" style="display:none;">
+            <div id="player-and-info">
+                <div id="player-wrap">
                     <video id="videoPlayer" controls autoplay></video>
-                    <div class="video-info-section">
-                        <h1 class="video-title" id="playerTitle">Video Title</h1>
-                        <div class="video-meta-row">
-                            <div class="video-stats">
-                                <span id="playerViews">1.2M views</span> &bull; <span id="playerDate">2 days ago</span>
-                            </div>
-                            <div class="video-actions">
-                                <label
-                                    style="display:flex; align-items:center; gap:8px; margin-right:8px; cursor:pointer;"
-                                    title="Autoplay Next Video">
-                                    <span style="font-size:14px; font-weight:500;">Autoplay</span>
-                                    <input type="checkbox" id="autoplayToggle" style="width:16px; height:16px;" checked>
-                                </label>
-                                <button class="action-btn" onclick="togglePiP()" title="Picture-in-Picture"><span
-                                        class="material-icons">picture_in_picture_alt</span> PiP</button>
-                                <button class="action-btn"><span class="material-icons">thumb_up</span> Like</button>
-                                <button class="action-btn"><span class="material-icons">playlist_add</span>
-                                    Save</button>
-                                <button class="action-btn" onclick="deleteCurrentVideo()" id="deleteBtn"
-                                    style="color: #ff4e4e;"><span class="material-icons">delete</span>
-                                    Delete</button>
+                </div>
+                <div id="below-player">
+                    <h1 id="playerTitle" class="watch-title">Video Title</h1>
+                    <div id="watch-info-bar">
+                        <div class="watch-info-left">
+                            <div class="watch-channel-info">
+                                <div class="watch-channel-avatar">
+                                    <div class="yt-avatar small">L</div>
+                                </div>
+                                <div class="watch-channel-text">
+                                    <span class="watch-channel-name">Local System</span>
+                                    <span class="watch-channel-subs" id="playerViews">--</span>
+                                </div>
+                                <button class="yt-subscribe-btn">Subscribe</button>
                             </div>
                         </div>
-                        <div class="channel-info-row">
-                            <img class="channel-avatar"
-                                src="https://ui-avatars.com/api/?name=LT&background=ff0000&color=fff" alt="Channel">
-                            <div class="channel-details">
-                                <div class="channel-name">Local Downloads</div>
-                                <div class="channel-subs">100M subscribers</div>
+                        <div class="watch-actions">
+                            <div class="watch-action-group like-dislike-group">
+                                <button class="watch-action-btn like-btn" id="likeBtn" onclick="toggleLike()">
+                                    <span class="material-icons-outlined">thumb_up</span>
+                                    <span class="action-label">Like</span>
+                                </button>
+                                <div class="action-separator"></div>
+                                <button class="watch-action-btn">
+                                    <span class="material-icons-outlined">thumb_down</span>
+                                </button>
                             </div>
-                            <button class="subscribe-btn">SUBSCRIBE</button>
+                            <button class="watch-action-btn pill-btn" onclick="changeSpeed()">
+                                <span class="material-icons-outlined">speed</span>
+                                <span class="action-label">Speed</span>
+                            </button>
+                            <button class="watch-action-btn pill-btn" onclick="togglePiP()">
+                                <span class="material-icons-outlined">picture_in_picture_alt</span>
+                                <span class="action-label">PiP</span>
+                            </button>
+                            <button class="watch-action-btn pill-btn delete-action" onclick="deleteCurrentVideo()">
+                                <span class="material-icons-outlined">delete</span>
+                                <span class="action-label">Delete</span>
+                            </button>
                         </div>
-                        <div class="video-description">
-                            <p>This video is playing directly from your PC's local storage.</p>
-                            <p>Stored at: <span id="playerPath"></span></p>
+                    </div>
+                    <div id="description-box">
+                        <div class="desc-top">
+                            <span id="playerDate">--</span> &bull; <span>Playing from local storage</span>
+                        </div>
+                        <div class="desc-body">
+                            <span class="material-icons-outlined" style="font-size:16px;">folder</span>
+                            <span id="playerPath" class="desc-path"></span>
+                        </div>
+                        <div class="autoplay-row">
+                            <span>Autoplay</span>
+                            <label class="yt-toggle">
+                                <input type="checkbox" id="autoplayToggle" checked>
+                                <span class="yt-toggle-slider"></span>
+                            </label>
                         </div>
                     </div>
                 </div>
-                <div class="player-sidebar" id="recommendedGrid">
-                    <!-- Recommended videos will be injected here via JS -->
-                </div>
             </div>
-        </main>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>LocalTube Settings</h2>
-                <span class="material-icons close-modal" onclick="closeSettings()">close</span>
-            </div>
-            <div class="modal-body">
-                <h3>Custom Video Folders</h3>
-                <p style="color:var(--secondary-text); font-size:14px; margin-bottom:12px;">Add absolute paths to
-                    folders on your PC containing videos (e.g. C:\\Users\\Name\\Videos).</p>
-                <div style="display:flex; gap:8px; margin-bottom:16px;">
-                    <input type="text" id="newFolderInput" class="search-input"
-                        style="border:1px solid var(--border-color); border-radius:4px;"
-                        placeholder="Full folder path...">
-                    <button class="subscribe-btn" style="border-radius:4px;" onclick="addFolder()">Add Folder</button>
-                </div>
-                <div id="foldersList"
-                    style="background:#1a1a1a; padding:12px; border-radius:8px; max-height:200px; overflow-y:auto;">
-                    <!-- Added via JS -->
-                </div>
+            <div id="related">
+                <div id="recommendedGrid" class="related-list"></div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="app.js"></script>
+<!-- ==================== SETTINGS MODAL ==================== -->
+<div id="settingsModal" class="yt-modal-overlay" style="display:none;">
+    <div class="yt-modal">
+        <div class="yt-modal-header">
+            <span>Settings</span>
+            <button class="yt-icon-btn" onclick="closeSettings()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="yt-modal-body">
+            <h3>Custom video folders</h3>
+            <p class="modal-desc">Add folders on your PC containing video files.</p>
+            <div class="folder-input-row">
+                <input type="text" id="newFolderInput" placeholder="e.g. C:\Users\Name\Videos">
+                <button class="yt-subscribe-btn" onclick="addFolder()">Add</button>
+            </div>
+            <div id="foldersList" class="folders-container"></div>
+            <div class="modal-about">
+                <span class="material-icons" style="font-size:16px; color:#2ba640;">verified_user</span>
+                <span>Locked to this PC only &bull; No internet required &bull; No tracking</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SHORTCUTS MODAL ==================== -->
+<div id="shortcutsModal" class="yt-modal-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="yt-modal" style="max-width:400px;">
+        <div class="yt-modal-header">
+            <span>Keyboard shortcuts</span>
+            <button class="yt-icon-btn" onclick="document.getElementById('shortcutsModal').style.display='none'">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="yt-modal-body shortcuts-body">
+            <div class="sc-row"><kbd>Space</kbd> / <kbd>K</kbd><span>Play / Pause</span></div>
+            <div class="sc-row"><kbd>F</kbd><span>Fullscreen</span></div>
+            <div class="sc-row"><kbd>M</kbd><span>Mute / Unmute</span></div>
+            <div class="sc-row"><kbd>&larr;</kbd><span>Rewind 10s</span></div>
+            <div class="sc-row"><kbd>&rarr;</kbd><span>Forward 10s</span></div>
+            <div class="sc-row"><kbd>&uarr;</kbd><span>Volume up</span></div>
+            <div class="sc-row"><kbd>&darr;</kbd><span>Volume down</span></div>
+            <div class="sc-row"><kbd>Esc</kbd><span>Back to Home</span></div>
+            <div class="sc-row"><kbd>/</kbd><span>Focus search</span></div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
-
 </html>

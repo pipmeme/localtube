@@ -1,3 +1,22 @@
+# Dependencies
 node_modules/
+
+# Generated files
 thumbnails/
 localtube-db.json
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env

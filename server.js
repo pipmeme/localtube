@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const cors = require('cors');
+const crypto = require('crypto');
 
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
@@ -11,11 +11,19 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const HOST = '127.0.0.1'; // Locked to localhost only - no network access
 
-app.use(cors());
-app.use(express.json());
+// Security: No CORS needed since frontend is served from same origin
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    next();
+});
 
 // Path to our local JSON database
 const dbPath = path.join(__dirname, 'localtube-db.json');
@@ -63,6 +71,42 @@ const isVideo = (filename) => {
 // State to hold video paths mapped by a unique ID
 let videoCache = [];
 
+// Generate a stable video ID from the file path (never changes between scans)
+const getVideoId = (filePath) => 'v' + crypto.createHash('md5').update(filePath).digest('hex').substring(0, 10);
+
+// Format video title: remove extension, replace separators with spaces, clean up
+const formatVideoTitle = (filename) => {
+    let name = path.parse(filename).name;
+    // Replace common separators with spaces
+    name = name.replace(/[_\-\.]+/g, ' ');
+    // Remove common junk tags like [1080p], (720p), x264, etc.
+    name = name.replace(/[\[\(].*?[\]\)]/g, '').trim();
+    // Capitalize first letter of each word
+    return name.replace(/\b\w/g, c => c.toUpperCase()).trim() || filename;
+};
+
+// Format file size to human-readable
+const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+// Get correct MIME type based on file extension
+const getMimeType = (filePath) => {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes = {
+        '.mp4': 'video/mp4',
+        '.webm': 'video/webm',
+        '.mkv': 'video/x-matroska',
+        '.avi': 'video/x-msvideo',
+        '.mov': 'video/quicktime'
+    };
+    return mimeTypes[ext] || 'video/mp4';
+};
+
 // Helper function to format duration from seconds to MM:SS or HH:MM:SS
 const formatDuration = (seconds) => {
     if (!seconds || isNaN(seconds)) return '0:00';
@@ -90,10 +134,24 @@ const getDuration = (filePath) => {
     });
 };
 
+// Returns both formatted string and raw seconds for progress calculation
+const getDurationWithSeconds = (filePath) => {
+    return new Promise((resolve) => {
+        ffmpeg.ffprobe(filePath, (err, metadata) => {
+            if (err) {
+                resolve({ formatted: '0:00', seconds: 0 });
+            } else {
+                const secs = metadata.format.duration || 0;
+                resolve({ formatted: formatDuration(secs), seconds: Math.round(secs) });
+            }
+        });
+    });
+};
+
 const scanDirectories = async () => {
-    let idCounter = 1;
     let newCache = [];
     const dirsToScan = getDirsToScan();
+    const seen = new Set(); // Avoid duplicate files across folders
 
     for (const dir of dirsToScan) {
         if (!fs.existsSync(dir)) continue;
@@ -103,18 +161,27 @@ const scanDirectories = async () => {
             for (const file of files) {
                 if (isVideo(file)) {
                     const fullPath = path.join(dir, file);
-                    const stat = fs.statSync(fullPath);
-                    if (stat.isFile()) {
-                        const duration = await getDuration(fullPath);
-                        newCache.push({
-                            id: `v${idCounter++}`,
-                            title: file,
-                            filename: file,
-                            path: fullPath,
-                            views: Math.floor(Math.random() * 1000000) + 1000,
-                            uploadDate: new Date(stat.birthtime).toLocaleDateString(),
-                            duration: duration
-                        });
+                    if (seen.has(fullPath)) continue;
+                    seen.add(fullPath);
+
+                    try {
+                        const stat = fs.statSync(fullPath);
+                        if (stat.isFile()) {
+                            const durationResult = await getDurationWithSeconds(fullPath);
+                            newCache.push({
+                                id: getVideoId(fullPath),
+                                title: formatVideoTitle(file),
+                                filename: file,
+                                path: fullPath,
+                                size: formatFileSize(stat.size),
+                                uploadDate: new Date(stat.birthtime).toLocaleDateString(),
+                                duration: durationResult.formatted,
+                                durationSeconds: durationResult.seconds,
+                                extension: path.extname(file).toLowerCase().replace('.', '')
+                            });
+                        }
+                    } catch (statErr) {
+                        // Skip files we can't access
                     }
                 }
             }
@@ -125,9 +192,8 @@ const scanDirectories = async () => {
 
     videoCache = newCache;
 
-    // If no videos found, add some mock entries so the UI still renders something
     if (videoCache.length === 0) {
-        console.log("No downloaded videos found. App will display an empty state or errors.");
+        console.log("No downloaded videos found. App will display an empty state.");
     }
 };
 
@@ -136,11 +202,8 @@ scanDirectories().then(() => {
     console.log(`Initial scan complete... Found ${videoCache.length} videos.`);
 });
 
-// API endpoint to get all videos (now attaching history/likes)
-app.get('/api/videos', async (req, res) => {
-    // Rescan to catch any newly downloaded videos asynchronously
-    await scanDirectories();
-
+// API endpoint to get all videos (returns cached data — use /api/refresh to rescan)
+app.get('/api/videos', (req, res) => {
     // Inject history and like data directly into the video objects
     const enhancedCache = videoCache.map(v => ({
         ...v,
@@ -157,13 +220,26 @@ app.post('/api/refresh', async (req, res) => {
     res.send({ success: true, count: videoCache.length });
 });
 
-// Settings / DB API endpoints
-app.get('/api/db', (req, res) => {
-    res.json(db);
+// API: Get stats
+app.get('/api/stats', (req, res) => {
+    res.json({
+        totalVideos: videoCache.length,
+        customFolders: (db.customFolders || []).length,
+        watchedVideos: Object.keys(db.history || {}).length,
+        likedVideos: (db.likedVideos || []).length
+    });
+});
+
+// API: Get custom folders list only (not the full DB)
+app.get('/api/folders', (req, res) => {
+    res.json({ folders: db.customFolders || [] });
 });
 
 app.post('/api/history', (req, res) => {
     const { videoId, timestamp } = req.body;
+    if (!videoId || typeof timestamp !== 'number') {
+        return res.status(400).send({ error: 'Invalid videoId or timestamp' });
+    }
     db.history[videoId] = timestamp;
     saveDb();
     res.send({ success: true });
@@ -171,16 +247,43 @@ app.post('/api/history', (req, res) => {
 
 app.post('/api/folders', (req, res) => {
     const { folder } = req.body;
-    if (folder && !db.customFolders.includes(folder)) {
-        if (fs.existsSync(folder)) {
-            db.customFolders.push(folder);
-            saveDb();
-            res.send({ success: true });
-        } else {
-            res.status(400).send({ error: 'Folder does not exist.' });
-        }
+    if (!folder || typeof folder !== 'string') {
+        return res.status(400).send({ error: 'Invalid folder path.' });
+    }
+    // Security: Normalize and validate the path
+    const normalizedPath = path.resolve(folder);
+    if (db.customFolders.includes(normalizedPath)) {
+        return res.status(400).send({ error: 'Folder already added.' });
+    }
+    if (!fs.existsSync(normalizedPath)) {
+        return res.status(400).send({ error: 'Folder does not exist on your PC.' });
+    }
+    db.customFolders.push(normalizedPath);
+    saveDb();
+    res.send({ success: true, path: normalizedPath });
+});
+
+// API: Remove a custom folder
+app.delete('/api/folders', (req, res) => {
+    const { folder } = req.body;
+    if (!folder) return res.status(400).send({ error: 'No folder specified.' });
+    db.customFolders = db.customFolders.filter(f => f !== folder);
+    saveDb();
+    res.send({ success: true });
+});
+
+// API: Toggle like on a video
+app.post('/api/like/:id', (req, res) => {
+    const videoId = req.params.id;
+    const index = db.likedVideos.indexOf(videoId);
+    if (index > -1) {
+        db.likedVideos.splice(index, 1);
+        saveDb();
+        res.send({ liked: false });
     } else {
-        res.status(400).send({ error: 'Invalid or existing folder.' });
+        db.likedVideos.push(videoId);
+        saveDb();
+        res.send({ liked: true });
     }
 });
 
@@ -212,7 +315,7 @@ app.get('/api/stream/:id', (req, res) => {
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Accept-Ranges': 'bytes',
             'Content-Length': chunksize,
-            'Content-Type': 'video/mp4', // Simplification, could be dynamic based on ext
+            'Content-Type': getMimeType(videoPath),
         };
 
         res.writeHead(206, head);
@@ -224,7 +327,7 @@ app.get('/api/stream/:id', (req, res) => {
     } else {
         const head = {
             'Content-Length': fileSize,
-            'Content-Type': 'video/mp4',
+            'Content-Type': getMimeType(videoPath),
         };
         res.writeHead(200, head);
         const file = fs.createReadStream(videoPath);
@@ -254,6 +357,7 @@ app.get('/api/thumbnail/:id', (req, res) => {
     }
 
     // Generate thumbnail on the fly
+    // Use fixed timestamp instead of percentage to avoid "Could not get input duration" errors
     ffmpeg(video.path)
         .on('end', () => {
             if (fs.existsSync(thumbPath)) {
@@ -263,15 +367,13 @@ app.get('/api/thumbnail/:id', (req, res) => {
             }
         })
         .on('error', (err) => {
-            console.error(`Error generating thumbnail for ${video.title}:`);
-            console.error(err);
+            // Silently handle expected failures (audio-only files, corrupt videos)
             if (!res.headersSent) {
-                // Return a clear 404 if ffmpeg totally fails to read the video stream (e.g. corrupt or unsupported)
-                res.status(404).send('Failed to generate thumbnail for this video type.');
+                res.status(404).send('Could not generate thumbnail');
             }
         })
         .screenshots({
-            timestamps: ['10%'],
+            timestamps: ['00:00:01'],
             filename: `${video.id}.jpg`,
             folder: thumbnailsDir,
             size: '320x180'
@@ -318,7 +420,17 @@ app.delete('/api/video/:id', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`LocalTube Server running at http://localhost:${PORT}`);
-    console.log(`Scanning for downloaded videos... Found ${videoCache.length} videos.`);
+const server = app.listen(PORT, HOST, () => {
+    console.log(`\n  ╔═══════════════════════════════════════════╗`);
+    console.log(`  ║   LocalTube is running!                   ║`);
+    console.log(`  ║   Open: http://localhost:${PORT}              ║`);
+    console.log(`  ║   Locked to this PC only (127.0.0.1)      ║`);
+    console.log(`  ║   Found ${String(videoCache.length).padEnd(4)} videos                      ║`);
+    console.log(`  ╚═══════════════════════════════════════════╝\n`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+    console.log('\nShutting down LocalTube...');
+    server.close(() => process.exit(0));
 });
