@@ -32,7 +32,7 @@ A **YouTube-like local video player** for your PC. Watch, organize, and manage y
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/localtube.git
+git clone https://github.com/pipmeme/localtube.git
 cd localtube
 
 # Install dependencies
